@@ -663,11 +663,6 @@ class ViCareSensor(SensorEntity, ViCareEntity):
         ViCareEntity.__init__(self, name, api, device_config)
         self.entity_description = description
 
-    @property
-    def available(self):
-        """Return True if entity is available."""
-        return self._state is not None
-
     def update(self):
         """Update state of sensor."""
         try:
