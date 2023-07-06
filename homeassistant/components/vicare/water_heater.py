@@ -148,11 +148,6 @@ class ViCareWater(WaterHeaterEntity, ViCareEntity):
         return f"{self._device_config.getConfig().serial}-{self._circuit.id}"
 
     @property
-    def name(self):
-        """Return the name of the water_heater device."""
-        return self._name
-
-    @property
     def temperature_unit(self):
         """Return the unit of measurement."""
         return UnitOfTemperature.CELSIUS
