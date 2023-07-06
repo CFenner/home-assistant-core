@@ -28,11 +28,6 @@ class ViCareEntity(Entity):
         )
 
     @property
-    def available(self):
-        """Return True if entity is available."""
-        return self._state is not None
-
-    @property
     def unique_id(self) -> str:
         """Return unique ID for this device."""
         tmp_id = (
@@ -41,6 +36,11 @@ class ViCareEntity(Entity):
         if hasattr(self._api, "id"):
             return f"{tmp_id}-{self._api.id}"
         return tmp_id
+
+    @property
+    def available(self):
+        """Return True if entity is available."""
+        return self._state is not None
 
     @property
     def native_value(self):
