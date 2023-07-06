@@ -41,7 +41,6 @@ from .const import (
     DOMAIN,
     VICARE_API,
     VICARE_DEVICE_CONFIG,
-    VICARE_NAME,
 )
 from .entities import ViCareEntity
 
