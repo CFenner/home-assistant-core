@@ -235,11 +235,6 @@ class ViCareClimate(ClimateEntity, ViCareEntity):
             _LOGGER.error("Invalid data from Vicare server: %s", invalid_data_exception)
 
     @property
-    def name(self):
-        """Return the name of the climate device."""
-        return self._name
-
-    @property
     def current_temperature(self):
         """Return the current temperature."""
         return self._current_temperature
