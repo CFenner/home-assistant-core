@@ -30,7 +30,6 @@ from homeassistant.const import (
     UnitOfVolume,
 )
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from . import ViCareRequiredKeysMixin
@@ -43,6 +42,7 @@ from .const import (
     VICARE_NAME,
     VICARE_UNIT_TO_UNIT_OF_MEASUREMENT,
 )
+from .entities import ViCareEntity
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -652,7 +652,7 @@ async def async_setup_entry(
     async_add_entities(entities)
 
 
-class ViCareSensor(SensorEntity):
+class ViCareSensor(SensorEntity, ViCareEntity):
     """Representation of a ViCare sensor."""
 
     entity_description: ViCareSensorEntityDescription
@@ -661,22 +661,9 @@ class ViCareSensor(SensorEntity):
         self, name, api, device_config, description: ViCareSensorEntityDescription
     ) -> None:
         """Initialize the sensor."""
+        ViCareEntity.__init__(self, name, api, device_config)
         self.entity_description = description
         self._attr_name = name
-        self._api = api
-        self._device_config = device_config
-        self._state = None
-
-    @property
-    def device_info(self) -> DeviceInfo:
-        """Return device info for this device."""
-        return DeviceInfo(
-            identifiers={(DOMAIN, self._device_config.getConfig().serial)},
-            name=self._device_config.getModel(),
-            manufacturer="Viessmann",
-            model=self._device_config.getModel(),
-            configuration_url="https://developer.viessmann.com/",
-        )
 
     @property
     def available(self):

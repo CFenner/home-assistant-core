@@ -33,7 +33,6 @@ from homeassistant.const import (
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import entity_platform
 import homeassistant.helpers.config_validation as cv
-from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import (
@@ -43,6 +42,7 @@ from .const import (
     VICARE_DEVICE_CONFIG,
     VICARE_NAME,
 )
+from .entities import ViCareEntity
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -141,7 +141,7 @@ async def async_setup_entry(
     async_add_entities(entities)
 
 
-class ViCareClimate(ClimateEntity):
+class ViCareClimate(ClimateEntity, ViCareEntity):
     """Representation of the ViCare heating climate device."""
 
     _attr_precision = PRECISION_TENTHS
@@ -152,11 +152,8 @@ class ViCareClimate(ClimateEntity):
 
     def __init__(self, name, api, circuit, device_config, heating_type):
         """Initialize the climate device."""
-        self._name = name
-        self._state = None
-        self._api = api
+        ViCareEntity.__init__(self, name, api, device_config)
         self._circuit = circuit
-        self._device_config = device_config
         self._attributes = {}
         self._target_temperature = None
         self._current_mode = None
@@ -169,17 +166,6 @@ class ViCareClimate(ClimateEntity):
     def unique_id(self) -> str:
         """Return unique ID for this device."""
         return f"{self._device_config.getConfig().serial}-{self._circuit.id}"
-
-    @property
-    def device_info(self) -> DeviceInfo:
-        """Return device info for this device."""
-        return DeviceInfo(
-            identifiers={(DOMAIN, self._device_config.getConfig().serial)},
-            name=self._device_config.getModel(),
-            manufacturer="Viessmann",
-            model=self._device_config.getModel(),
-            configuration_url="https://developer.viessmann.com/",
-        )
 
     def update(self) -> None:
         """Let HA know there has been an update from the ViCare API."""
