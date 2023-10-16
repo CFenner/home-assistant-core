@@ -74,6 +74,14 @@ async def async_setup_entry(
     circuits = await hass.async_add_executor_job(_get_circuits, api)
 
     for circuit in circuits:
+    
+        try:
+            circuit.getActiveMode()
+            _LOGGER.debug("Found entity %s", name)
+        except PyViCareNotSupportedFeatureError:
+            _LOGGER.info("Feature not supported Water")
+            return None
+        
         suffix = ""
         if len(circuits) > 1:
             suffix = f" {circuit.id}"
