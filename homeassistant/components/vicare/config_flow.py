@@ -14,7 +14,6 @@ from homeassistant.data_entry_flow import FlowResult
 import homeassistant.helpers.config_validation as cv
 from homeassistant.helpers.device_registry import format_mac
 
-from . import vicare_login
 from .const import (
     CONF_HEATING_TYPE,
     DEFAULT_HEATING_TYPE,
@@ -22,6 +21,7 @@ from .const import (
     VICARE_NAME,
     HeatingType,
 )
+from .utils import login
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -50,9 +50,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
         if user_input is not None:
             try:
-                await self.hass.async_add_executor_job(
-                    vicare_login, self.hass, user_input
-                )
+                await self.hass.async_add_executor_job(login, self.hass, user_input)
             except PyViCareInvalidCredentialsError:
                 errors["base"] = "invalid_auth"
             else:

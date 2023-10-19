@@ -15,6 +15,7 @@ PLATFORMS = [
 
 VICARE_DEVICE_CONFIG = "device_conf"
 VICARE_DEVICE_CONFIG_LIST = "device_config_list"
+VICARE_TOKEN_FILENAME = "vicare_token.save"
 VICARE_API = "api"
 VICARE_NAME = "ViCare"
 
