@@ -195,13 +195,17 @@ class ViCareBinarySensor(ViCareEntity, BinarySensorEntity):
     entity_description: ViCareBinarySensorEntityDescription
 
     def __init__(
-        self, name, api, device_config, description: ViCareBinarySensorEntityDescription
+        self,
+        name,
+        device,
+        device_config,
+        description: ViCareBinarySensorEntityDescription,
     ) -> None:
         """Initialize the sensor."""
-        super().__init__(device_config)
+        super().__init__(device, device_config)
         self.entity_description = description
         self._attr_name = name
-        self._api = api
+        self._api = device
         self._device_config = device_config
 
     @property

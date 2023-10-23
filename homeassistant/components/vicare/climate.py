@@ -148,11 +148,11 @@ class ViCareClimate(ViCareEntity, ClimateEntity):
     _current_action: bool | None = None
     _current_mode: str | None = None
 
-    def __init__(self, name, api, circuit, device_config) -> None:
+    def __init__(self, name, device, circuit, device_config) -> None:
         """Initialize the climate device."""
-        super().__init__(device_config)
+        super().__init__(device, device_config)
         self._attr_name = name
-        self._api = api
+        self._api = device
         self._circuit = circuit
         self._attributes: dict[str, Any] = {}
         self._current_program = None

@@ -1,4 +1,7 @@
 """Entities for the ViCare integration."""
+from PyViCare.PyViCareDevice import Device as PyViCareDevice
+from PyViCare.PyViCareDeviceConfig import PyViCareDeviceConfig
+
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity import Entity
 
@@ -10,11 +13,13 @@ class ViCareEntity(Entity):
 
     _attr_has_entity_name = True
 
-    def __init__(self, device_config) -> None:
+    def __init__(
+        self, device: PyViCareDevice, device_config: PyViCareDeviceConfig
+    ) -> None:
         """Initialize the entity."""
 
         self._attr_device_info = DeviceInfo(
-            identifiers={(DOMAIN, device_config.getConfig().serial)},
+            identifiers={(DOMAIN, device.getSerial())},
             name=device_config.getModel(),
             manufacturer="Viessmann",
             model=device_config.getModel(),
