@@ -124,6 +124,7 @@ async def _entities_from_descriptions(
     hass: HomeAssistant,
     entities: list[ViCareBinarySensor],
     sensor_descriptions: tuple[ViCareBinarySensorEntityDescription, ...],
+    device,
     iterables,
     config_entry: ConfigEntry,
 ) -> None:
@@ -136,6 +137,7 @@ async def _entities_from_descriptions(
             entity = await hass.async_add_executor_job(
                 _build_entity,
                 f"{description.name}{suffix}",
+                device,
                 current,
                 hass.data[DOMAIN][config_entry.entry_id][VICARE_DEVICE_CONFIG],
                 description,
@@ -150,7 +152,7 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Create the ViCare binary sensor devices."""
-    api = hass.data[DOMAIN][config_entry.entry_id][VICARE_API]
+    device = hass.data[DOMAIN][config_entry.entry_id][VICARE_API]
 
     entities = []
 
@@ -158,7 +160,7 @@ async def async_setup_entry(
         entity = await hass.async_add_executor_job(
             _build_entity,
             description.name,
-            api,
+            device,
             hass.data[DOMAIN][config_entry.entry_id][VICARE_DEVICE_CONFIG],
             description,
         )
@@ -167,21 +169,21 @@ async def async_setup_entry(
 
     try:
         await _entities_from_descriptions(
-            hass, entities, CIRCUIT_SENSORS, api.circuits, config_entry
+            hass, entities, CIRCUIT_SENSORS, device, device.circuits, config_entry
         )
     except PyViCareNotSupportedFeatureError:
         _LOGGER.info("No circuits found")
 
     try:
         await _entities_from_descriptions(
-            hass, entities, BURNER_SENSORS, api.burners, config_entry
+            hass, entities, BURNER_SENSORS, device, device.burners, config_entry
         )
     except PyViCareNotSupportedFeatureError:
         _LOGGER.info("No burners found")
 
     try:
         await _entities_from_descriptions(
-            hass, entities, COMPRESSOR_SENSORS, api.compressors, config_entry
+            hass, entities, COMPRESSOR_SENSORS, device, device.compressors, config_entry
         )
     except PyViCareNotSupportedFeatureError:
         _LOGGER.info("No compressors found")

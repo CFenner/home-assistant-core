@@ -72,7 +72,7 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Create the ViCare button entities."""
-    api = hass.data[DOMAIN][config_entry.entry_id][VICARE_API]
+    device = hass.data[DOMAIN][config_entry.entry_id][VICARE_API]
 
     entities = []
 
@@ -80,7 +80,7 @@ async def async_setup_entry(
         entity = await hass.async_add_executor_job(
             _build_entity,
             description.name,
-            api,
+            device,
             hass.data[DOMAIN][config_entry.entry_id][VICARE_DEVICE_CONFIG],
             description,
         )

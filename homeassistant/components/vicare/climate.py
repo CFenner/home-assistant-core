@@ -106,8 +106,8 @@ async def async_setup_entry(
 ) -> None:
     """Set up the ViCare climate platform."""
     entities = []
-    api = hass.data[DOMAIN][config_entry.entry_id][VICARE_API]
-    circuits = await hass.async_add_executor_job(_get_circuits, api)
+    device = hass.data[DOMAIN][config_entry.entry_id][VICARE_API]
+    circuits = await hass.async_add_executor_job(_get_circuits, device)
 
     for circuit in circuits:
         suffix = ""
@@ -116,7 +116,7 @@ async def async_setup_entry(
 
         entity = ViCareClimate(
             f"Heating{suffix}",
-            api,
+            device,
             circuit,
             hass.data[DOMAIN][config_entry.entry_id][VICARE_DEVICE_CONFIG],
         )

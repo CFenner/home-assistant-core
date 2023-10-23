@@ -627,15 +627,15 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Create the ViCare sensor devices."""
-    api = hass.data[DOMAIN][config_entry.entry_id][VICARE_API]
+    device = hass.data[DOMAIN][config_entry.entry_id][VICARE_API]
 
     entities = []
     for description in GLOBAL_SENSORS:
         entity = await hass.async_add_executor_job(
             _build_entity,
             description.name,
-            api,
-            api,
+            device,
+            device,
             hass.data[DOMAIN][config_entry.entry_id][VICARE_DEVICE_CONFIG],
             description,
         )
@@ -644,21 +644,21 @@ async def async_setup_entry(
 
     try:
         await _entities_from_descriptions(
-            hass, entities, CIRCUIT_SENSORS, api, api.circuits, config_entry
+            hass, entities, CIRCUIT_SENSORS, device, device.circuits, config_entry
         )
     except PyViCareNotSupportedFeatureError:
         _LOGGER.info("No circuits found")
 
     try:
         await _entities_from_descriptions(
-            hass, entities, BURNER_SENSORS, api, api.burners, config_entry
+            hass, entities, BURNER_SENSORS, device, device.burners, config_entry
         )
     except PyViCareNotSupportedFeatureError:
         _LOGGER.info("No burners found")
 
     try:
         await _entities_from_descriptions(
-            hass, entities, COMPRESSOR_SENSORS, api, api.compressors, config_entry
+            hass, entities, COMPRESSOR_SENSORS, device, device.compressors, config_entry
         )
     except PyViCareNotSupportedFeatureError:
         _LOGGER.info("No compressors found")
