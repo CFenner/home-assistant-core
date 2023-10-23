@@ -156,7 +156,7 @@ class ViCareClimate(ViCareEntity, ClimateEntity):
         self._circuit = circuit
         self._attributes: dict[str, Any] = {}
         self._current_program = None
-        self._attr_unique_id = f"{device_config.getConfig().serial}-{circuit.id}"
+        self._attr_unique_id = f"{device.getSerial()}-{circuit.id}"
 
     def update(self) -> None:
         """Let HA know there has been an update from the ViCare API."""
