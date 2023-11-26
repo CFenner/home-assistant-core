@@ -38,6 +38,9 @@ class ViCareNumberEntityDescription(NumberEntityDescription, ViCareRequiredKeysM
     """Describes ViCare number entity."""
 
     value_setter: Callable[[PyViCareDevice, float], Any] | None = None
+    min_value_getter: Callable[[PyViCareDevice], float | None] | None = None
+    max_value_getter: Callable[[PyViCareDevice], float | None] | None = None
+    stepping_getter: Callable[[PyViCareDevice], float | None] | None = None
 
 
 CIRCUIT_ENTITY_DESCRIPTIONS: tuple[ViCareNumberEntityDescription, ...] = (
@@ -46,11 +49,14 @@ CIRCUIT_ENTITY_DESCRIPTIONS: tuple[ViCareNumberEntityDescription, ...] = (
         translation_key="heating curve shift",
         icon="mdi:plus-minus-variant",
         entity_category=EntityCategory.CONFIG,
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
         value_getter=lambda api: api.getHeatingCurveShift(),
         value_setter=lambda api, shift: (
             api.setHeatingCurve(shift, api.getHeatingCurveSlope())
         ),
-        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+        min_value_getter=lambda api: api.getHeatingCurveShiftMin(),
+        max_value_getter=lambda api: api.getHeatingCurveShiftMax(),
+        stepping_getter=lambda api: api.getHeatingCurveShiftStepping(),
         native_min_value=-13,
         native_max_value=40,
         native_step=1,
@@ -64,6 +70,9 @@ CIRCUIT_ENTITY_DESCRIPTIONS: tuple[ViCareNumberEntityDescription, ...] = (
         value_setter=lambda api, slope: (
             api.setHeatingCurve(api.getHeatingCurveShift(), slope)
         ),
+        min_value_getter=lambda api: api.getHeatingCurveSlopeMin(),
+        max_value_getter=lambda api: api.getHeatingCurveSlopeMax(),
+        stepping_getter=lambda api: api.getHeatingCurveSlopeStepping(),
         native_min_value=0.2,
         native_max_value=3.5,
         native_step=0.1,
@@ -145,6 +154,21 @@ class ViCareNumber(ViCareEntity, NumberEntity):
                 self._attr_native_value = self.entity_description.value_getter(
                     self._api
                 )
+
+                if self.entity_description.min_value_getter:
+                    min_value = self.entity_description.min_value_getter(self._api)
+                    if min_value is not None:
+                        self._attr_native_min_value = min_value
+
+                if self.entity_description.max_value_getter:
+                    max_value = self.entity_description.max_value_getter(self._api)
+                    if max_value is not None:
+                        self._attr_native_max_value = max_value
+
+                if self.entity_description.stepping_getter:
+                    stepping = self.entity_description.stepping_getter(self._api)
+                    if stepping is not None:
+                        self._attr_native_step = stepping
         except RequestConnectionError:
             _LOGGER.error("Unable to retrieve data from ViCare server")
         except ValueError:
