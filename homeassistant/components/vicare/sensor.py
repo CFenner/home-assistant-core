@@ -38,14 +38,13 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from . import ViCareRequiredKeysMixin
 from .const import (
     DOMAIN,
-    VICARE_API,
     VICARE_CUBIC_METER,
-    VICARE_DEVICE_CONFIG,
+    VICARE_DEVICE_CONFIG_LIST,
     VICARE_KWH,
     VICARE_UNIT_TO_UNIT_OF_MEASUREMENT,
 )
 from .entity import ViCareEntity
-from .utils import get_burners, get_circuits, get_compressors, is_supported
+from .utils import is_supported
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -613,7 +612,7 @@ async def _entities_from_descriptions(
     entities: list[ViCareSensor],
     sensor_descriptions: tuple[ViCareSensorEntityDescription, ...],
     iterables,
-    config_entry: ConfigEntry,
+    device_config: PyViCareDeviceConfig,
 ) -> None:
     """Create entities from descriptions and list of burners/circuits."""
     for description in sensor_descriptions:
@@ -621,7 +620,7 @@ async def _entities_from_descriptions(
             entity = await hass.async_add_executor_job(
                 _build_entity,
                 current,
-                hass.data[DOMAIN][config_entry.entry_id][VICARE_DEVICE_CONFIG],
+                device_config,
                 description,
             )
             if entity:
@@ -634,35 +633,31 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Create the ViCare sensor devices."""
-    api: Device = hass.data[DOMAIN][config_entry.entry_id][VICARE_API]
-    device_config: PyViCareDeviceConfig = hass.data[DOMAIN][config_entry.entry_id][
-        VICARE_DEVICE_CONFIG
-    ]
-
     entities = []
+
+    device_config, device, circuits, burners, compressors = hass.data[DOMAIN][
+        config_entry.entry_id
+    ][VICARE_DEVICE_CONFIG_LIST][0]
     for description in GLOBAL_SENSORS:
         entity = await hass.async_add_executor_job(
             _build_entity,
-            api,
+            device,
             device_config,
             description,
         )
         if entity:
             entities.append(entity)
 
-    circuits = await hass.async_add_executor_job(get_circuits, api)
     await _entities_from_descriptions(
-        hass, entities, CIRCUIT_SENSORS, circuits, config_entry
+        hass, entities, CIRCUIT_SENSORS, circuits, device_config
     )
 
-    burners = await hass.async_add_executor_job(get_burners, api)
     await _entities_from_descriptions(
-        hass, entities, BURNER_SENSORS, burners, config_entry
+        hass, entities, BURNER_SENSORS, burners, device_config
     )
 
-    compressors = await hass.async_add_executor_job(get_compressors, api)
     await _entities_from_descriptions(
-        hass, entities, COMPRESSOR_SENSORS, compressors, config_entry
+        hass, entities, COMPRESSOR_SENSORS, compressors, device_config
     )
 
     async_add_entities(entities)
