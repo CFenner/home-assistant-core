@@ -21,17 +21,8 @@ from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers.storage import STORAGE_DIR
 
-from .const import (
-    CONF_HEATING_TYPE,
-    DEFAULT_SCAN_INTERVAL,
-    DOMAIN,
-    HEATING_TYPE_TO_CREATOR_METHOD,
-    PLATFORMS,
-    VICARE_API,
-    VICARE_DEVICE_CONFIG,
-    VICARE_DEVICE_CONFIG_LIST,
-    HeatingType,
-)
+from .const import DEFAULT_SCAN_INTERVAL, DOMAIN, PLATFORMS, VICARE_DEVICE_CONFIG_LIST
+from .utils import get_burners, get_circuits, get_compressors, get_device
 
 _LOGGER = logging.getLogger(__name__)
 _TOKEN_FILENAME = "vicare_token.save"
@@ -90,15 +81,16 @@ def setup_vicare_api(hass: HomeAssistant, entry: ConfigEntry) -> None:
             "Found device: %s (online: %s)", device.getModel(), str(device.isOnline())
         )
 
-    # Currently we only support a single device
-    device_list = vicare_api.devices
-    device = device_list[0]
-    hass.data[DOMAIN][entry.entry_id][VICARE_DEVICE_CONFIG_LIST] = device_list
-    hass.data[DOMAIN][entry.entry_id][VICARE_DEVICE_CONFIG] = device
-    hass.data[DOMAIN][entry.entry_id][VICARE_API] = getattr(
-        device,
-        HEATING_TYPE_TO_CREATOR_METHOD[HeatingType(entry.data[CONF_HEATING_TYPE])],
-    )()
+    hass.data[DOMAIN][entry.entry_id][VICARE_DEVICE_CONFIG_LIST] = [
+        (
+            device_config,
+            device := get_device(device_config, entry),
+            get_circuits(device),
+            get_burners(device),
+            get_compressors(device),
+        )
+        for device_config in vicare_api.devices
+    ]
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
