@@ -26,9 +26,9 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from . import ViCareRequiredKeysMixin
-from .const import DOMAIN, VICARE_API, VICARE_DEVICE_CONFIG
+from .const import DOMAIN, VICARE_DEVICE_CONFIG_LIST
 from .entity import ViCareEntity
-from .utils import get_circuits, is_supported
+from .utils import is_supported
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -102,10 +102,10 @@ async def async_setup_entry(
 ) -> None:
     """Create the ViCare number devices."""
     entities: list[ViCareNumber] = []
-    api = hass.data[DOMAIN][config_entry.entry_id][VICARE_API]
-    device_config = hass.data[DOMAIN][config_entry.entry_id][VICARE_DEVICE_CONFIG]
 
-    circuits = await hass.async_add_executor_job(get_circuits, api)
+    device_config, _, circuits, _, _ = hass.data[DOMAIN][config_entry.entry_id][
+        VICARE_DEVICE_CONFIG_LIST
+    ][0]
     for circuit in circuits:
         for description in CIRCUIT_ENTITY_DESCRIPTIONS:
             entity = await hass.async_add_executor_job(
