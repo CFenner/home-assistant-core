@@ -21,7 +21,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from . import ViCareRequiredKeysMixinWithSet
-from .const import DOMAIN, VICARE_API, VICARE_DEVICE_CONFIG
+from .const import DOMAIN, VICARE_DEVICE_CONFIG_LIST
 from .entity import ViCareEntity
 from .utils import is_supported
 
@@ -68,15 +68,16 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Create the ViCare button entities."""
-    api = hass.data[DOMAIN][config_entry.entry_id][VICARE_API]
-
     entities = []
 
+    device_config, device, _, _, _ = hass.data[DOMAIN][config_entry.entry_id][
+        VICARE_DEVICE_CONFIG_LIST
+    ][0]
     for description in BUTTON_DESCRIPTIONS:
         entity = await hass.async_add_executor_job(
             _build_entity,
-            api,
-            hass.data[DOMAIN][config_entry.entry_id][VICARE_DEVICE_CONFIG],
+            device,
+            device_config,
             description,
         )
         if entity:
