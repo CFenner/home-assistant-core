@@ -103,6 +103,7 @@ async def async_setup_entry(
     """Create the ViCare number devices."""
     entities: list[ViCareNumber] = []
 
+    # Currently we only support a single device
     device_config, _, circuits, _, _ = hass.data[DOMAIN][config_entry.entry_id][
         VICARE_DEVICE_CONFIG_LIST
     ][0]

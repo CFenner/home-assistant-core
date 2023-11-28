@@ -65,6 +65,7 @@ async def async_setup_entry(
     """Set up the ViCare climate platform."""
     entities = []
 
+    # Currently we only support a single device
     device_config, device, circuits, _, _ = hass.data[DOMAIN][config_entry.entry_id][
         VICARE_DEVICE_CONFIG_LIST
     ][0]

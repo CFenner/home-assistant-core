@@ -70,6 +70,7 @@ async def async_setup_entry(
     """Create the ViCare button entities."""
     entities = []
 
+    # Currently we only support a single device
     device_config, device, _, _, _ = hass.data[DOMAIN][config_entry.entry_id][
         VICARE_DEVICE_CONFIG_LIST
     ][0]
