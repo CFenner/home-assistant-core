@@ -98,3 +98,13 @@ def get_serial(device_config: PyViCareDeviceConfig) -> str:
         return device_config.getConfig().serial
     # we cannot always use device.getSerial() either as there is a different API endpoint used for gateways that does not provide the serial (yet)
     return device_config.asAutoDetectDevice().getSerial()
+
+
+def get_device_serial_model_list(
+    hass: HomeAssistant, device_list: list[PyViCareDeviceConfig]
+) -> list[tuple[str, str]]:
+    """Return a list of serial / model per device config."""
+    return [
+        (get_serial(device_config), device_config.getModel())
+        for device_config in device_list
+    ]

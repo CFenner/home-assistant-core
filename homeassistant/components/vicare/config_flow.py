@@ -14,18 +14,26 @@ import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.components import dhcp
 from homeassistant.const import CONF_CLIENT_ID, CONF_PASSWORD, CONF_USERNAME
+from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResult
 import homeassistant.helpers.config_validation as cv
 from homeassistant.helpers.device_registry import format_mac
+from homeassistant.helpers.selector import (
+    SelectOptionDict,
+    SelectSelector,
+    SelectSelectorConfig,
+    SelectSelectorMode,
+)
 
 from .const import (
+    CONF_ACTIVE_DEVICE,
     CONF_HEATING_TYPE,
     DEFAULT_HEATING_TYPE,
     DOMAIN,
     VICARE_NAME,
     HeatingType,
 )
-from .utils import vicare_login
+from .utils import get_device_config_list, get_device_serial_model_list, vicare_login
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -46,11 +54,19 @@ USER_SCHEMA = REAUTH_SCHEMA.extend(
 )
 
 
+def _get_device_list(
+    hass: HomeAssistant, entry_data: dict[str, Any]
+) -> list[tuple[str, str]]:
+    device_list = get_device_config_list(hass, entry_data)
+    return get_device_serial_model_list(hass, device_list)
+
+
 class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """Handle a config flow for ViCare."""
 
     VERSION = 1
     entry: config_entries.ConfigEntry | None
+    available_devices: list[tuple[str, str]] = []
 
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
@@ -63,17 +79,61 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
         if user_input is not None:
             try:
-                await self.hass.async_add_executor_job(
-                    vicare_login, self.hass, user_input
+                self.available_devices = await self.hass.async_add_executor_job(
+                    _get_device_list,
+                    self.hass,
+                    user_input,
                 )
             except (PyViCareInvalidConfigurationError, PyViCareInvalidCredentialsError):
                 errors["base"] = "invalid_auth"
             else:
-                return self.async_create_entry(title=VICARE_NAME, data=user_input)
-
+                if len(self.available_devices) > 1:
+                    return await self.async_step_select()
+                if len(self.available_devices) == 1:
+                    return self.async_create_entry(
+                        title=VICARE_NAME,
+                        data={
+                            **user_input,
+                            CONF_ACTIVE_DEVICE: self.available_devices[0][0],
+                        },
+                    )
+                errors["base"] = "no_devices"
         return self.async_show_form(
             step_id="user",
             data_schema=USER_SCHEMA,
+            errors=errors,
+        )
+
+    async def async_step_select(
+        self, user_input: dict[str, Any] | None = None
+    ) -> FlowResult:
+        """Select which device to show."""
+        errors: dict[str, str] = {}
+        if user_input is not None:
+            return self.async_create_entry(title="", data=user_input)
+
+        schema = (
+            vol.Schema(
+                {
+                    vol.Required(CONF_ACTIVE_DEVICE): SelectSelector(
+                        SelectSelectorConfig(
+                            options=[
+                                SelectOptionDict(
+                                    value=serial, label=f"{serial} ({model})"
+                                )
+                                for serial, model in self.available_devices
+                            ],
+                            multiple=False,
+                            mode=SelectSelectorMode.LIST,
+                        ),
+                    ),
+                }
+            ),
+        )
+
+        return self.async_show_form(
+            step_id="select",
+            data_schema=schema,
             errors=errors,
         )
 
