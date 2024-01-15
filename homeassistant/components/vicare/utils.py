@@ -1,15 +1,36 @@
 """ViCare helpers functions."""
+from collections.abc import Mapping
 import logging
+from typing import Any
 
+from PyViCare.PyViCare import PyViCare
 from PyViCare.PyViCareDevice import Device as PyViCareDevice
 from PyViCare.PyViCareHeatingDevice import (
     HeatingDeviceWithComponent as PyViCareHeatingDeviceComponent,
 )
 from PyViCare.PyViCareUtils import PyViCareNotSupportedFeatureError
 
+from homeassistant.const import CONF_CLIENT_ID, CONF_PASSWORD, CONF_USERNAME
+from homeassistant.core import HomeAssistant
+from homeassistant.helpers.storage import STORAGE_DIR
+
+from .const import DEFAULT_SCAN_INTERVAL, VICARE_TOKEN_FILENAME
 from .types import ViCareRequiredKeysMixin
 
 _LOGGER = logging.getLogger(__name__)
+
+
+def vicare_login(hass: HomeAssistant, entry_data: Mapping[str, Any]) -> PyViCare:
+    """Login via PyVicare API."""
+    api = PyViCare()
+    api.setCacheDuration(DEFAULT_SCAN_INTERVAL)
+    api.initWithCredentials(
+        entry_data[CONF_USERNAME],
+        entry_data[CONF_PASSWORD],
+        entry_data[CONF_CLIENT_ID],
+        hass.config.path(STORAGE_DIR, VICARE_TOKEN_FILENAME),
+    )
+    return api
 
 
 def is_supported(

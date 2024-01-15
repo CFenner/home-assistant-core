@@ -18,7 +18,6 @@ from homeassistant.data_entry_flow import FlowResult
 import homeassistant.helpers.config_validation as cv
 from homeassistant.helpers.device_registry import format_mac
 
-from . import vicare_login
 from .const import (
     CONF_HEATING_TYPE,
     DEFAULT_HEATING_TYPE,
@@ -26,6 +25,7 @@ from .const import (
     VICARE_NAME,
     HeatingType,
 )
+from .utils import vicare_login
 
 _LOGGER = logging.getLogger(__name__)
 

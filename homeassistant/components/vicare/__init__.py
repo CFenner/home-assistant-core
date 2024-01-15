@@ -1,38 +1,34 @@
 """The ViCare integration."""
 from __future__ import annotations
 
-from collections.abc import Mapping
 from contextlib import suppress
 import logging
 import os
-from typing import Any
 
-from PyViCare.PyViCare import PyViCare
 from PyViCare.PyViCareUtils import (
     PyViCareInvalidConfigurationError,
     PyViCareInvalidCredentialsError,
 )
 
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import CONF_CLIENT_ID, CONF_PASSWORD, CONF_USERNAME
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers.storage import STORAGE_DIR
 
 from .const import (
     CONF_HEATING_TYPE,
-    DEFAULT_SCAN_INTERVAL,
     DOMAIN,
     HEATING_TYPE_TO_CREATOR_METHOD,
     PLATFORMS,
     VICARE_API,
     VICARE_DEVICE_CONFIG,
     VICARE_DEVICE_CONFIG_LIST,
+    VICARE_TOKEN_FILENAME,
     HeatingType,
 )
+from .utils import vicare_login
 
 _LOGGER = logging.getLogger(__name__)
-_TOKEN_FILENAME = "vicare_token.save"
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
@@ -50,19 +46,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
     return True
-
-
-def vicare_login(hass: HomeAssistant, entry_data: Mapping[str, Any]) -> PyViCare:
-    """Login via PyVicare API."""
-    vicare_api = PyViCare()
-    vicare_api.setCacheDuration(DEFAULT_SCAN_INTERVAL)
-    vicare_api.initWithCredentials(
-        entry_data[CONF_USERNAME],
-        entry_data[CONF_PASSWORD],
-        entry_data[CONF_CLIENT_ID],
-        hass.config.path(STORAGE_DIR, _TOKEN_FILENAME),
-    )
-    return vicare_api
 
 
 def setup_vicare_api(hass: HomeAssistant, entry: ConfigEntry) -> None:
@@ -93,7 +76,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     with suppress(FileNotFoundError):
         await hass.async_add_executor_job(
-            os.remove, hass.config.path(STORAGE_DIR, _TOKEN_FILENAME)
+            os.remove, hass.config.path(STORAGE_DIR, VICARE_TOKEN_FILENAME)
         )
 
     return unload_ok
