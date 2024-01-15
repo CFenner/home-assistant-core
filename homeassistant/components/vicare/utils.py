@@ -34,6 +34,18 @@ def vicare_login(hass: HomeAssistant, entry_data: Mapping[str, Any]) -> PyViCare
     return api
 
 
+def get_device_config_list(
+    hass: HomeAssistant, entry_data: Mapping[str, Any]
+) -> list[PyViCareDeviceConfig]:
+    """Return the list of device configs."""
+    api = vicare_login(hass, entry_data)
+    for device in api.devices:
+        _LOGGER.info(
+            "Found device: %s (online: %s)", device.getModel(), str(device.isOnline())
+        )
+    return api.devices
+
+
 def is_supported(
     name: str,
     entity_description: ViCareRequiredKeysMixin,

@@ -59,8 +59,8 @@ async def mock_vicare_gas_boiler(
     """Return a mocked ViCare API representing a single gas boiler device."""
     fixtures = ["vicare/Vitodens300W.json"]
     with patch(
-        f"{MODULE}.vicare_login",
-        return_value=MockPyViCare(fixtures),
+        f"{MODULE}.get_device_config_list",
+        return_value=MockPyViCare(fixtures).devices,
     ):
         mock_config_entry.add_to_hass(hass)
 

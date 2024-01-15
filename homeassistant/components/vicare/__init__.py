@@ -26,7 +26,7 @@ from .const import (
     VICARE_TOKEN_FILENAME,
     HeatingType,
 )
-from .utils import vicare_login
+from .utils import get_device_config_list
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -50,15 +50,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
 def setup_vicare_api(hass: HomeAssistant, entry: ConfigEntry) -> None:
     """Set up PyVicare API."""
-    vicare_api = vicare_login(hass, entry.data)
-
-    for device in vicare_api.devices:
-        _LOGGER.info(
-            "Found device: %s (online: %s)", device.getModel(), str(device.isOnline())
-        )
-
+    device_list = get_device_config_list(hass, entry.data)
     # Currently we only support a single device
-    device_list = vicare_api.devices
     device = device_list[0]
     hass.data[DOMAIN][entry.entry_id][VICARE_DEVICE_CONFIG_LIST] = device_list
     hass.data[DOMAIN][entry.entry_id][VICARE_DEVICE_CONFIG] = device
