@@ -3,7 +3,7 @@ import logging
 
 from PyViCare.PyViCareDevice import Device as PyViCareDevice
 from PyViCare.PyViCareHeatingDevice import (
-    HeatingDeviceWithComponent as PyViCareHeatingDeviceComponent,
+    HeatingDeviceWithComponent as PyViCareComponent,
 )
 from PyViCare.PyViCareUtils import PyViCareNotSupportedFeatureError
 
@@ -15,7 +15,7 @@ _LOGGER = logging.getLogger(__name__)
 def is_supported(
     name: str,
     entity_description: ViCareRequiredKeysMixin,
-    api: PyViCareDevice | PyViCareHeatingDeviceComponent,
+    api: PyViCareDevice | PyViCareComponent,
 ) -> bool:
     """Check if the PyViCare device supports the requested sensor."""
     try:
@@ -29,7 +29,7 @@ def is_supported(
     return False
 
 
-def get_burners(device: PyViCareDevice) -> list[PyViCareHeatingDeviceComponent]:
+def get_burners(device: PyViCareDevice) -> list[PyViCareComponent]:
     """Return the list of burners."""
     try:
         return device.burners
@@ -40,7 +40,7 @@ def get_burners(device: PyViCareDevice) -> list[PyViCareHeatingDeviceComponent]:
     return []
 
 
-def get_circuits(device: PyViCareDevice) -> list[PyViCareHeatingDeviceComponent]:
+def get_circuits(device: PyViCareDevice) -> list[PyViCareComponent]:
     """Return the list of circuits."""
     try:
         return device.circuits
@@ -51,7 +51,7 @@ def get_circuits(device: PyViCareDevice) -> list[PyViCareHeatingDeviceComponent]
     return []
 
 
-def get_compressors(device: PyViCareDevice) -> list[PyViCareHeatingDeviceComponent]:
+def get_compressors(device: PyViCareDevice) -> list[PyViCareComponent]:
     """Return the list of compressors."""
     try:
         return device.compressors

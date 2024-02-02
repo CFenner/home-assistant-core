@@ -2,7 +2,7 @@
 from PyViCare.PyViCareDevice import Device as PyViCareDevice
 from PyViCare.PyViCareDeviceConfig import PyViCareDeviceConfig
 from PyViCare.PyViCareHeatingDevice import (
-    HeatingDeviceWithComponent as PyViCareHeatingDeviceComponent,
+    HeatingDeviceWithComponent as PyViCareComponent,
 )
 
 from homeassistant.helpers.device_registry import DeviceInfo
@@ -19,7 +19,7 @@ class ViCareEntity(Entity):
     def __init__(
         self,
         device_config: PyViCareDeviceConfig,
-        api: PyViCareDevice | PyViCareHeatingDeviceComponent,
+        api: PyViCareDevice | PyViCareComponent,
         unique_id_suffix: str,
     ) -> None:
         """Initialize the entity."""

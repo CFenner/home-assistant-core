@@ -10,7 +10,7 @@ from typing import Any
 from PyViCare.PyViCareDevice import Device as PyViCareDevice
 from PyViCare.PyViCareDeviceConfig import PyViCareDeviceConfig
 from PyViCare.PyViCareHeatingDevice import (
-    HeatingDeviceWithComponent as PyViCareHeatingDeviceComponent,
+    HeatingDeviceWithComponent as PyViCareComponent,
 )
 from PyViCare.PyViCareUtils import (
     PyViCareInvalidDataError,
@@ -41,18 +41,18 @@ _LOGGER = logging.getLogger(__name__)
 class ViCareNumberEntityDescription(NumberEntityDescription, ViCareRequiredKeysMixin):
     """Describes ViCare number entity."""
 
-    value_getter: Callable[[PyViCareDevice | PyViCareHeatingDeviceComponent], float]
+    value_getter: Callable[[PyViCareDevice | PyViCareComponent], float]
     value_setter: Callable[
-        [PyViCareDevice | PyViCareHeatingDeviceComponent, float], Any
+        [PyViCareDevice | PyViCareComponent, float], Any
     ] | None = None
     min_value_getter: Callable[
-        [PyViCareDevice | PyViCareHeatingDeviceComponent], float | None
+        [PyViCareDevice | PyViCareComponent], float | None
     ] | None = None
     max_value_getter: Callable[
-        [PyViCareDevice | PyViCareHeatingDeviceComponent], float | None
+        [PyViCareDevice | PyViCareComponent], float | None
     ] | None = None
     stepping_getter: Callable[
-        [PyViCareDevice | PyViCareHeatingDeviceComponent], float | None
+        [PyViCareDevice | PyViCareComponent], float | None
     ] | None = None
 
 
@@ -173,7 +173,7 @@ class ViCareNumber(ViCareEntity, NumberEntity):
 
     def __init__(
         self,
-        api: PyViCareDevice | PyViCareHeatingDeviceComponent,
+        api: PyViCareDevice | PyViCareComponent,
         device_config: PyViCareDeviceConfig,
         description: ViCareNumberEntityDescription,
     ) -> None:
@@ -225,8 +225,7 @@ class ViCareNumber(ViCareEntity, NumberEntity):
 
 
 def _get_value(
-    fn: Callable[[PyViCareDevice | PyViCareHeatingDeviceComponent], float | None]
-    | None,
-    api: PyViCareDevice | PyViCareHeatingDeviceComponent,
+    fn: Callable[[PyViCareDevice | PyViCareComponent], float | None] | None,
+    api: PyViCareDevice | PyViCareComponent,
 ) -> float | None:
     return None if fn is None else fn(api)

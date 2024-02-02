@@ -11,7 +11,7 @@ from typing import Any
 from PyViCare.PyViCare import PyViCare
 from PyViCare.PyViCareDevice import Device as PyViCareDevice
 from PyViCare.PyViCareHeatingDevice import (
-    HeatingDeviceWithComponent as PyViCareHeatingDeviceComponent,
+    HeatingDeviceWithComponent as PyViCareComponent,
 )
 from PyViCare.PyViCareUtils import (
     PyViCareInvalidConfigurationError,
@@ -44,14 +44,14 @@ _TOKEN_FILENAME = "vicare_token.save"
 class ViCareRequiredKeysMixin:
     """Mixin for required keys."""
 
-    value_getter: Callable[[PyViCareDevice | PyViCareHeatingDeviceComponent], Any]
+    value_getter: Callable[[PyViCareDevice | PyViCareComponent], Any]
 
 
 @dataclass(frozen=True)
 class ViCareRequiredKeysMixinWithSet(ViCareRequiredKeysMixin):
     """Mixin for required keys with setter."""
 
-    value_setter: Callable[[PyViCareDevice | PyViCareHeatingDeviceComponent], bool]
+    value_setter: Callable[[PyViCareDevice | PyViCareComponent], bool]
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
