@@ -9,7 +9,7 @@ import logging
 from PyViCare.PyViCareDevice import Device as PyViCareDevice
 from PyViCare.PyViCareDeviceConfig import PyViCareDeviceConfig
 from PyViCare.PyViCareHeatingDevice import (
-    HeatingDeviceWithComponent as PyViCareHeatingDeviceWithComponent,
+    HeatingDeviceWithComponent as PyViCareHeatingDeviceComponent,
 )
 from PyViCare.PyViCareUtils import (
     PyViCareInvalidDataError,
@@ -62,7 +62,9 @@ VICARE_UNIT_TO_DEVICE_CLASS = {
 class ViCareSensorEntityDescription(SensorEntityDescription, ViCareRequiredKeysMixin):
     """Describes ViCare sensor entity."""
 
-    unit_getter: Callable[[PyViCareDevice], str | None] | None = None
+    unit_getter: Callable[
+        [PyViCareDevice | PyViCareHeatingDeviceComponent], str | None
+    ] | None = None
 
 
 GLOBAL_SENSORS: tuple[ViCareSensorEntityDescription, ...] = (
@@ -701,7 +703,7 @@ def _build_entities_for_device(
 
 
 def _build_entities_for_component(
-    components: list[PyViCareHeatingDeviceWithComponent],
+    components: list[PyViCareHeatingDeviceComponent],
     device_config: PyViCareDeviceConfig,
     entity_descriptions: tuple[ViCareSensorEntityDescription, ...],
 ) -> list[ViCareSensor]:
@@ -746,7 +748,7 @@ class ViCareSensor(ViCareEntity, SensorEntity):
 
     def __init__(
         self,
-        api,
+        api: PyViCareDevice | PyViCareHeatingDeviceComponent,
         device_config: PyViCareDeviceConfig,
         description: ViCareSensorEntityDescription,
     ) -> None:

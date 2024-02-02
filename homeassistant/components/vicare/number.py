@@ -41,11 +41,19 @@ _LOGGER = logging.getLogger(__name__)
 class ViCareNumberEntityDescription(NumberEntityDescription, ViCareRequiredKeysMixin):
     """Describes ViCare number entity."""
 
-    value_getter: Callable[[PyViCareDevice], float]
-    value_setter: Callable[[PyViCareDevice, float], Any] | None = None
-    min_value_getter: Callable[[PyViCareDevice], float | None] | None = None
-    max_value_getter: Callable[[PyViCareDevice], float | None] | None = None
-    stepping_getter: Callable[[PyViCareDevice], float | None] | None = None
+    value_getter: Callable[[PyViCareDevice | PyViCareHeatingDeviceComponent], float]
+    value_setter: Callable[
+        [PyViCareDevice | PyViCareHeatingDeviceComponent, float], Any
+    ] | None = None
+    min_value_getter: Callable[
+        [PyViCareDevice | PyViCareHeatingDeviceComponent], float | None
+    ] | None = None
+    max_value_getter: Callable[
+        [PyViCareDevice | PyViCareHeatingDeviceComponent], float | None
+    ] | None = None
+    stepping_getter: Callable[
+        [PyViCareDevice | PyViCareHeatingDeviceComponent], float | None
+    ] | None = None
 
 
 CIRCUIT_ENTITY_DESCRIPTIONS: tuple[ViCareNumberEntityDescription, ...] = (
@@ -123,7 +131,7 @@ CIRCUIT_ENTITY_DESCRIPTIONS: tuple[ViCareNumberEntityDescription, ...] = (
 
 
 def _build_entities(
-    api: PyViCareDevice,
+    device: PyViCareDevice,
     device_config: PyViCareDeviceConfig,
 ) -> list[ViCareNumber]:
     """Create ViCare number entities for a component."""
@@ -134,7 +142,7 @@ def _build_entities(
             device_config,
             description,
         )
-        for circuit in get_circuits(api)
+        for circuit in get_circuits(device)
         for description in CIRCUIT_ENTITY_DESCRIPTIONS
         if is_supported(description.key, description, circuit)
     ]
@@ -165,7 +173,7 @@ class ViCareNumber(ViCareEntity, NumberEntity):
 
     def __init__(
         self,
-        api: PyViCareHeatingDeviceComponent,
+        api: PyViCareDevice | PyViCareHeatingDeviceComponent,
         device_config: PyViCareDeviceConfig,
         description: ViCareNumberEntityDescription,
     ) -> None:
@@ -217,7 +225,8 @@ class ViCareNumber(ViCareEntity, NumberEntity):
 
 
 def _get_value(
-    fn: Callable[[PyViCareDevice], float | None] | None,
-    api: PyViCareHeatingDeviceComponent,
+    fn: Callable[[PyViCareDevice | PyViCareHeatingDeviceComponent], float | None]
+    | None,
+    api: PyViCareDevice | PyViCareHeatingDeviceComponent,
 ) -> float | None:
     return None if fn is None else fn(api)

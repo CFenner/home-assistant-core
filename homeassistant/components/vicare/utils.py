@@ -15,11 +15,11 @@ _LOGGER = logging.getLogger(__name__)
 def is_supported(
     name: str,
     entity_description: ViCareRequiredKeysMixin,
-    vicare_device,
+    api: PyViCareDevice | PyViCareHeatingDeviceComponent,
 ) -> bool:
     """Check if the PyViCare device supports the requested sensor."""
     try:
-        entity_description.value_getter(vicare_device)
+        entity_description.value_getter(api)
         _LOGGER.debug("Found entity %s", name)
         return True
     except PyViCareNotSupportedFeatureError:

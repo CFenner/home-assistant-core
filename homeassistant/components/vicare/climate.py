@@ -99,18 +99,18 @@ HA_TO_VICARE_PRESET_HEATING = {
 
 
 def _build_entities(
-    api: PyViCareDevice,
+    device: PyViCareDevice,
     device_config: PyViCareDeviceConfig,
 ) -> list[ViCareClimate]:
     """Create ViCare climate entities for a device."""
     return [
         ViCareClimate(
-            api,
+            device,
             circuit,
             device_config,
             "heating",
         )
-        for circuit in get_circuits(api)
+        for circuit in get_circuits(device)
     ]
 
 
@@ -162,13 +162,13 @@ class ViCareClimate(ViCareEntity, ClimateEntity):
 
     def __init__(
         self,
-        api: PyViCareDevice,
+        device: PyViCareDevice,
         circuit: PyViCareHeatingCircuit,
         device_config: PyViCareDeviceConfig,
         translation_key: str,
     ) -> None:
         """Initialize the climate device."""
-        super().__init__(device_config, api, circuit.id)
+        super().__init__(device_config, device, circuit.id)
         self._circuit = circuit
         self._attr_translation_key = translation_key
 
@@ -260,7 +260,7 @@ class ViCareClimate(ViCareEntity, ClimateEntity):
         _LOGGER.debug("Setting hvac mode to %s / %s", hvac_mode, vicare_mode)
         self._circuit.setMode(vicare_mode)
 
-    def vicare_mode_from_hvac_mode(self, hvac_mode):
+    def vicare_mode_from_hvac_mode(self, hvac_mode) -> str | None:
         """Return the corresponding vicare mode for an hvac_mode."""
         if "vicare_modes" not in self._attributes:
             return None
@@ -361,7 +361,7 @@ class ViCareClimate(ViCareEntity, ClimateEntity):
         """Show Device Attributes."""
         return self._attributes
 
-    def set_vicare_mode(self, vicare_mode):
+    def set_vicare_mode(self, vicare_mode: str | None):
         """Service function to set vicare modes directly."""
         if vicare_mode not in self._attributes["vicare_modes"]:
             raise ValueError(f"Cannot set invalid vicare mode: {vicare_mode}.")
