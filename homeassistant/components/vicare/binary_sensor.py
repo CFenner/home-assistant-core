@@ -9,7 +9,7 @@ import logging
 from PyViCare.PyViCareDevice import Device as PyViCareDevice
 from PyViCare.PyViCareDeviceConfig import PyViCareDeviceConfig
 from PyViCare.PyViCareHeatingDevice import (
-    HeatingDeviceWithComponent as PyViCareHeatingDeviceWithComponent,
+    HeatingDeviceWithComponent as PyViCareComponent,
 )
 from PyViCare.PyViCareUtils import (
     PyViCareInvalidDataError,
@@ -155,7 +155,7 @@ def _build_entities_for_device(
 
 
 def _build_entities_for_component(
-    components: list[PyViCareHeatingDeviceWithComponent],
+    components: list[PyViCareComponent],
     device_config: PyViCareDeviceConfig,
     entity_descriptions: tuple[ViCareBinarySensorEntityDescription, ...],
 ) -> list[ViCareBinarySensor]:
@@ -198,7 +198,7 @@ class ViCareBinarySensor(ViCareEntity, BinarySensorEntity):
 
     def __init__(
         self,
-        api: PyViCareDevice,
+        api: PyViCareDevice | PyViCareComponent,
         device_config: PyViCareDeviceConfig,
         description: ViCareBinarySensorEntityDescription,
     ) -> None:
