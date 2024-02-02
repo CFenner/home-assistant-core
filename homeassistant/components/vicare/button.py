@@ -48,19 +48,19 @@ BUTTON_DESCRIPTIONS: tuple[ViCareButtonEntityDescription, ...] = (
 
 
 def _build_entities(
-    api: PyViCareDevice,
+    device: PyViCareDevice,
     device_config: PyViCareDeviceConfig,
 ) -> list[ViCareButton]:
     """Create ViCare button entities for a device."""
 
     return [
         ViCareButton(
-            api,
+            device,
             device_config,
             description,
         )
         for description in BUTTON_DESCRIPTIONS
-        if is_supported(description.key, description, api)
+        if is_supported(description.key, description, device)
     ]
 
 
@@ -89,12 +89,12 @@ class ViCareButton(ViCareEntity, ButtonEntity):
 
     def __init__(
         self,
-        api: PyViCareDevice,
+        device: PyViCareDevice,
         device_config: PyViCareDeviceConfig,
         description: ViCareButtonEntityDescription,
     ) -> None:
         """Initialize the button."""
-        super().__init__(device_config, api, description.key)
+        super().__init__(device_config, device, description.key)
         self.entity_description = description
 
     def press(self) -> None:
