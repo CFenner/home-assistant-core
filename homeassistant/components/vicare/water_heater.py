@@ -103,6 +103,7 @@ class ViCareWater(ViCareEntity, WaterHeaterEntity):
     _attr_min_temp = VICARE_TEMP_WATER_MIN
     _attr_max_temp = VICARE_TEMP_WATER_MAX
     _attr_operation_list = list(HA_TO_VICARE_HVAC_DHW)
+    _current_mode: str | None = None
 
     def __init__(
         self,
@@ -114,8 +115,6 @@ class ViCareWater(ViCareEntity, WaterHeaterEntity):
         """Initialize the DHW water_heater device."""
         super().__init__(device_config, api, circuit.id)
         self._circuit = circuit
-        self._attributes: dict[str, Any] = {}
-        self._current_mode = None
         self._attr_translation_key = translation_key
 
     def update(self) -> None:
@@ -150,6 +149,8 @@ class ViCareWater(ViCareEntity, WaterHeaterEntity):
             self._attr_target_temperature = temp
 
     @property
-    def current_operation(self):
+    def current_operation(self) -> str | None:
         """Return current operation ie. heat, cool, idle."""
+        if not self._current_mode:
+            return None
         return VICARE_TO_HA_HVAC_DHW.get(self._current_mode)
