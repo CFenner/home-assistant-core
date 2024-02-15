@@ -301,6 +301,10 @@
       },
       "compressor_phase": {
         "name": "Compressor phase"
+        "state": {
+          "ready": "Standby",
+          "off": "Off"
+        }
       }
     },
     "water_heater": {
