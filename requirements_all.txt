@@ -2561,7 +2561,7 @@ python-vlc==3.0.18122
 python-xbox==0.1.1
 
 # homeassistant.components.xsense
-python-xsense[async]==0.0.3
+python-xsense[async]==0.0.5
 
 # homeassistant.components.egardia
 pythonegardia==1.0.52
