@@ -59,6 +59,7 @@ def _build_entities(
             description,
         )
         for device in device_list
+        if device.config.isOnline()
         for description in BUTTON_DESCRIPTIONS
         if is_supported(description.key, description, device.api)
     ]
