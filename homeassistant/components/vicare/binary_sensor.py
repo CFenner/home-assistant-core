@@ -112,22 +112,23 @@ def _build_entities(
 
     entities: list[ViCareBinarySensor] = []
     for device in device_list:
-        entities.extend(_build_entities_for_device(device.api, device.config))
-        entities.extend(
-            _build_entities_for_component(
-                get_circuits(device.api), device.config, CIRCUIT_SENSORS
+        if device.config.isOnline():
+            entities.extend(_build_entities_for_device(device.api, device.config))
+            entities.extend(
+                _build_entities_for_component(
+                    get_circuits(device.api), device.config, CIRCUIT_SENSORS
+                )
             )
-        )
-        entities.extend(
-            _build_entities_for_component(
-                get_burners(device.api), device.config, BURNER_SENSORS
+            entities.extend(
+                _build_entities_for_component(
+                    get_burners(device.api), device.config, BURNER_SENSORS
+                )
             )
-        )
-        entities.extend(
-            _build_entities_for_component(
-                get_compressors(device.api), device.config, COMPRESSOR_SENSORS
+            entities.extend(
+                _build_entities_for_component(
+                    get_compressors(device.api), device.config, COMPRESSOR_SENSORS
+                )
             )
-        )
     return entities
 
 
