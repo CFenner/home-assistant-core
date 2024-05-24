@@ -93,6 +93,7 @@ def _build_entities(
             "heating",
         )
         for device in device_list
+        if device.config.isOnline()
         for circuit in get_circuits(device.api)
     ]
 
