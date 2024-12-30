@@ -13,9 +13,6 @@ from PyViCare.PyViCareUtils import (
     PyViCareNotSupportedFeatureError,
     PyViCareRateLimitError,
 )
-from PyViCare.PyViCareVentilationDevice import (
-    VentilationDevice as PyViCareVentilationDevice,
-)
 from requests.exceptions import ConnectionError as RequestConnectionError
 
 from homeassistant.components.fan import FanEntity, FanEntityFeature
@@ -96,7 +93,7 @@ def _build_entities(
     return [
         ViCareFan(get_device_serial(device.api), device.config, device.api)
         for device in device_list
-        if isinstance(device.api, PyViCareVentilationDevice)
+        if device.api.isVentilationDevice()
     ]
 
 
