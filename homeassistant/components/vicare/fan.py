@@ -132,7 +132,7 @@ class ViCareFan(ViCareEntity, FanEntity):
             self._attr_translation_key, device_serial, device_config, device
         )
         # init presets
-        supported_modes = list[str](self._api.getAvailableModes())
+        supported_modes = list[str](self._api.getVentilationModes())
         self._attr_preset_modes = [
             mode
             for mode in VentilationMode
@@ -146,11 +146,11 @@ class ViCareFan(ViCareEntity, FanEntity):
         try:
             with suppress(PyViCareNotSupportedFeatureError):
                 self._attr_preset_mode = VentilationMode.from_vicare_mode(
-                    self._api.getActiveMode()
+                    self._api.getActiveVentilationMode()
                 )
             with suppress(PyViCareNotSupportedFeatureError):
                 self._attr_percentage = ordered_list_item_to_percentage(
-                    ORDERED_NAMED_FAN_SPEEDS, self._api.getActiveProgram()
+                    ORDERED_NAMED_FAN_SPEEDS, self._api.getActiveVentilationProgram()
                 )
         except RequestConnectionError:
             _LOGGER.error("Unable to retrieve data from ViCare server")
@@ -198,10 +198,10 @@ class ViCareFan(ViCareEntity, FanEntity):
 
         level = percentage_to_ordered_list_item(ORDERED_NAMED_FAN_SPEEDS, percentage)
         _LOGGER.debug("changing ventilation level to %s", level)
-        self._api.setPermanentLevel(level)
+        self._api.setVentilationLevel(level)
 
     def set_preset_mode(self, preset_mode: str) -> None:
         """Set new preset mode."""
         target_mode = VentilationMode.to_vicare_mode(preset_mode)
         _LOGGER.debug("changing ventilation mode to %s", target_mode)
-        self._api.setActiveMode(target_mode)
+        self._api.activateVentilationMode(target_mode)
