@@ -1673,6 +1673,7 @@ ovoenergy==3.0.2
 p1monitor==3.2.0
 
 # homeassistant.components.mqtt
+# homeassistant.components.xsense
 paho-mqtt==2.1.0
 
 # homeassistant.components.panasonic_bluray
@@ -2561,7 +2562,7 @@ python-vlc==3.0.18122
 python-xbox==0.1.1
 
 # homeassistant.components.xsense
-python-xsense[async]==0.0.15
+python-xsense[async]==0.0.16
 
 # homeassistant.components.egardia
 pythonegardia==1.0.52
