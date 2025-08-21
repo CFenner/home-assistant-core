@@ -2,7 +2,11 @@
 
 from __future__ import annotations
 
-from homeassistant.helpers.device_registry import DeviceInfo
+from homeassistant.helpers.device_registry import (
+    CONNECTION_BLUETOOTH,
+    DeviceInfo,
+    format_mac,
+)
 from homeassistant.helpers.entity import EntityDescription
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
@@ -18,11 +22,14 @@ class HusqvarnaAutomowerBleEntity(CoordinatorEntity[HusqvarnaCoordinator]):
     def __init__(self, coordinator: HusqvarnaCoordinator) -> None:
         """Initialize coordinator entity."""
         super().__init__(coordinator)
+        formatted_mac = format_mac(coordinator.address)
 
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, f"{coordinator.address}_{coordinator.channel_id}")},
             manufacturer=MANUFACTURER,
             model_id=coordinator.model,
+            suggested_area="Garden",
+            connections={(CONNECTION_BLUETOOTH, formatted_mac)},
         )
 
     @property
