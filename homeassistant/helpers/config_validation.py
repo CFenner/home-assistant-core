@@ -115,6 +115,7 @@ from homeassistant.util import (
 from homeassistant.util.yaml.objects import NodeStrClass
 
 from . import script_variables as script_variables_helper, template as template_helper
+from .device_registry import format_mac
 from .frame import get_integration_logger
 from .typing import VolDictType, VolSchemaType
 
@@ -905,6 +906,31 @@ def x10_address(value: str) -> str:
         raise vol.Invalid("Invalid X10 Address")
     return str(value).lower()
 
+
+def mac_address(value: Any) -> str:
+    """Validate a MAC address."""
+
+    if value is None:
+        raise vol.Invalid("value is None")
+    elif not isinstance(value, str):
+        raise vol.Invalid("value should be a string")
+    
+    formatted = format_mac(str(value))
+    if _validate_mac(formatted):
+        return formatted
+        
+    raise vol.Invalid("invalid MAC address")
+
+# borrowed from homeassistant.components.eq3btsmart.config_flow
+def _validate_mac(mac: str) -> bool:
+    """Return whether or not given value is a valid MAC address."""
+
+    return bool(
+        mac
+        and len(mac) == 17
+        and mac.count(":") == 5
+        and all(int(part, 16) < 256 for part in mac.split(":") if part)
+    )
 
 def uuid4_hex(value: Any) -> str:
     """Validate a v4 UUID in hex format."""
