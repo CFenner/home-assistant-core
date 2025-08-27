@@ -16,6 +16,8 @@ from homeassistant.components import bluetooth
 from homeassistant.components.bluetooth import BluetoothServiceInfo
 from homeassistant.config_entries import SOURCE_BLUETOOTH, ConfigFlow, ConfigFlowResult
 from homeassistant.const import CONF_ADDRESS, CONF_CLIENT_ID, CONF_PIN
+from homeassistant.helpers import config_validation as cv
+
 
 from .const import DOMAIN, LOGGER
 
@@ -119,7 +121,7 @@ class HusqvarnaAutomowerBleConfigFlow(ConfigFlow, domain=DOMAIN):
             data_schema=self.add_suggested_values_to_schema(
                 vol.Schema(
                     {
-                        vol.Required(CONF_ADDRESS): str,
+                        vol.Required(CONF_ADDRESS): cv.mac_address,
                         vol.Required(CONF_PIN): str,
                     },
                 ),
