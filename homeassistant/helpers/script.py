@@ -629,6 +629,10 @@ class _ScriptRun:
         self, script: Script, *, parallel: bool = False
     ) -> None:
         """Execute a script."""
+        if not script.enabled:
+            self._log("Skipping disabled script: %s", script.name)
+            trace_set_result(enabled=False)
+            return
         result = await self._async_run_long_action(
             self._hass.async_create_task_internal(
                 script.async_run(
@@ -694,7 +698,13 @@ class _ScriptRun:
                             if cond(hass, variables) is False:
                                 return False
             except exceptions.ConditionError as ex:
-                _LOGGER.warning("Error in '%s[%s]' evaluation: %s", name, idx, ex)
+                self._log(
+                    "Error in '%s[%s]' evaluation: %s",
+                    name,
+                    idx,
+                    ex,
+                    level=logging.WARNING,
+                )
                 return None
 
             return True
@@ -715,7 +725,11 @@ class _ScriptRun:
                                 await self._async_run_script(script)
                                 return
                     except exceptions.ConditionError as ex:
-                        _LOGGER.warning("Error in 'choose' evaluation:\n%s", ex)
+                        self._log(
+                            "Error in 'choose' evaluation:\n%s",
+                            ex,
+                            level=logging.WARNING,
+                        )
 
         if choose_data["default"] is not None:
             trace_set_result(choice="default")
@@ -734,7 +748,7 @@ class _ScriptRun:
                 trace_element.reuse_by_child = True
             check = cond(self._hass, self._variables)
         except exceptions.ConditionError as ex:
-            _LOGGER.warning("Error in 'condition' evaluation:\n%s", ex)
+            self._log("Error in 'condition' evaluation:\n%s", ex, level=logging.WARNING)
             check = False
 
         self._log("Test condition %s: %s", self._script.last_action, check)
@@ -747,13 +761,10 @@ class _ScriptRun:
         if_data = await self._script._async_get_if_data(self._step)  # noqa: SLF001
 
         test_conditions: bool | None = False
-        try:
-            with trace_path("if"):
-                test_conditions = self._test_conditions(
-                    if_data["if_conditions"], "if", "condition"
-                )
-        except exceptions.ConditionError as ex:
-            _LOGGER.warning("Error in 'if' evaluation:\n%s", ex)
+        with trace_path("if"):
+            test_conditions = self._test_conditions(
+                if_data["if_conditions"], "if", "condition"
+            )
 
         if test_conditions:
             trace_set_result(choice="then")
@@ -844,33 +855,28 @@ class _ScriptRun:
             ]
             for iteration in itertools.count(1):
                 set_repeat_var(iteration)
-                try:
-                    if self._stop.done():
-                        break
-                    if not self._test_conditions(conditions, "while"):
-                        break
-                except exceptions.ConditionError as ex:
-                    _LOGGER.warning("Error in 'while' evaluation:\n%s", ex)
+                if self._stop.done():
+                    break
+                if not self._test_conditions(conditions, "while"):
                     break
 
                 if iteration > 1:
                     if iteration > REPEAT_WARN_ITERATIONS:
                         if not warned_too_many_loops:
                             warned_too_many_loops = True
-                            _LOGGER.warning(
-                                "While condition %s in script `%s` looped %s times",
+                            self._log(
+                                "While condition %s looped %s times",
                                 repeat[CONF_WHILE],
-                                self._script.name,
                                 REPEAT_WARN_ITERATIONS,
+                                level=logging.WARNING,
                             )
 
                         if iteration > REPEAT_TERMINATE_ITERATIONS:
-                            _LOGGER.critical(
-                                "While condition %s in script `%s` "
-                                "terminated because it looped %s times",
+                            self._log(
+                                "While condition %s terminated because it looped %s times",
                                 repeat[CONF_WHILE],
-                                self._script.name,
                                 REPEAT_TERMINATE_ITERATIONS,
+                                level=logging.CRITICAL,
                             )
                             raise _AbortScript(
                                 f"While condition {repeat[CONF_WHILE]} "
@@ -892,32 +898,27 @@ class _ScriptRun:
             for iteration in itertools.count(1):
                 set_repeat_var(iteration)
                 await async_run_sequence(iteration)
-                try:
-                    if self._stop.done():
-                        break
-                    if self._test_conditions(conditions, "until") in [True, None]:
-                        break
-                except exceptions.ConditionError as ex:
-                    _LOGGER.warning("Error in 'until' evaluation:\n%s", ex)
+                if self._stop.done():
+                    break
+                if self._test_conditions(conditions, "until") in [True, None]:
                     break
 
                 if iteration >= REPEAT_WARN_ITERATIONS:
                     if not warned_too_many_loops:
                         warned_too_many_loops = True
-                        _LOGGER.warning(
-                            "Until condition %s in script `%s` looped %s times",
+                        self._log(
+                            "Until condition %s looped %s times",
                             repeat[CONF_UNTIL],
-                            self._script.name,
                             REPEAT_WARN_ITERATIONS,
+                            level=logging.WARNING,
                         )
 
                     if iteration >= REPEAT_TERMINATE_ITERATIONS:
-                        _LOGGER.critical(
-                            "Until condition %s in script `%s` "
-                            "terminated because it looped %s times",
+                        self._log(
+                            "Until condition %s terminated because it looped %s times",
                             repeat[CONF_UNTIL],
-                            self._script.name,
                             REPEAT_TERMINATE_ITERATIONS,
+                            level=logging.CRITICAL,
                         )
                         raise _AbortScript(
                             f"Until condition {repeat[CONF_UNTIL]} "
@@ -966,12 +967,11 @@ class _ScriptRun:
     ## Variable actions ##
 
     async def _async_step_variables(self) -> None:
-        """Define a local variable."""
-        self._step_log("defining local variables")
-        for key, value in (
-            self._action[CONF_VARIABLES].async_simple_render(self._variables).items()
-        ):
-            self._variables.define_local(key, value)
+        """Assign values to variables."""
+        self._step_log("assigning variables")
+        self._variables.update(
+            self._action[CONF_VARIABLES].async_simple_render(self._variables)
+        )
 
     ## External actions ##
 
@@ -1312,7 +1312,7 @@ class _QueuedScriptRun(_ScriptRun):
 
     lock_acquired = False
 
-    async def async_run(self) -> None:
+    async def async_run(self) -> ScriptRunResult | None:
         """Run script."""
         # Wait for previous run, if any, to finish by attempting to acquire the script's
         # shared lock. At the same time monitor if we've been told to stop.
@@ -1326,7 +1326,7 @@ class _QueuedScriptRun(_ScriptRun):
 
         self.lock_acquired = True
         # We've acquired the lock so we can go ahead and start the run.
-        await super().async_run()
+        return await super().async_run()
 
     def _finish(self) -> None:
         if self.lock_acquired:
@@ -1443,8 +1443,12 @@ class Script:
         script_mode: str = DEFAULT_SCRIPT_MODE,
         top_level: bool = True,
         variables: ScriptVariables | None = None,
+        enabled: bool = True,
     ) -> None:
-        """Initialize the script."""
+        """Initialize the script.
+
+        enabled attribute is only used for non-top-level scripts.
+        """
         if not (all_scripts := hass.data.get(DATA_SCRIPTS)):
             all_scripts = hass.data[DATA_SCRIPTS] = []
             hass.bus.async_listen_once(
@@ -1463,6 +1467,7 @@ class Script:
         self.name = name
         self.unique_id = f"{domain}.{name}-{id(self)}"
         self.domain = domain
+        self.enabled = enabled
         self.running_description = running_description or f"{domain} script"
         self._change_listener = change_listener
         self._change_listener_job = (
@@ -2003,6 +2008,7 @@ class Script:
                 max_runs=self.max_runs,
                 logger=self._logger,
                 top_level=False,
+                enabled=parallel_script.get(CONF_ENABLED, True),
             )
             parallel_script.change_listener = partial(
                 self._chain_change_listener, parallel_script
