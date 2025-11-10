@@ -166,7 +166,9 @@ class ViCareFan(ViCareEntity, FanEntity):
             else []
         )
         if VentilationQuickmode.STANDBY in quickmodes:
-            self._attr_supported_features |= FanEntityFeature.TURN_OFF
+            self._attr_supported_features |= (
+                FanEntityFeature.TURN_OFF | FanEntityFeature.TURN_ON
+            )
 
     def update(self) -> None:
         """Update state of fan."""
@@ -211,6 +213,11 @@ class ViCareFan(ViCareEntity, FanEntity):
         **kwargs: Any,
     ) -> None:
         """Turn on the fan."""
+
+        # deactivate any quickmode that may be active
+        for quickmode in self._attributes["vicare_quickmodes"]:
+            if self._api.getVentilationQuickmode(quickmode):
+                self._api.deactivateVentilationQuickmode(str(quickmode))
 
         if percentage is not None and percentage > 0:
             self.set_percentage(int(percentage))
